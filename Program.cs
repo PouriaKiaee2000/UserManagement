@@ -1,4 +1,5 @@
 using UserManagement.Models;
+using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
 var app = builder.Build();
@@ -22,6 +23,10 @@ app.MapGet("/users/{id}", (int id) =>
 // Create new user
 app.MapPost("/users", (User user) =>
 {
+    var validation = ValidateUser(user);
+    if (!validation.IsValid)
+        return Results.BadRequest(new { message = validation.Error });
+
     user.Id = users.Any() ? users.Max(u => u.Id) + 1 : 1;
     users.Add(user);
     return Results.Created($"/users/{user.Id}", user);
@@ -31,7 +36,13 @@ app.MapPost("/users", (User user) =>
 app.MapPut("/users/{id}", (int id, User updatedUser) =>
 {
     var user = users.FirstOrDefault(u => u.Id == id);
+
     if (user is null) return Results.NotFound();
+
+    var validation = ValidateUser(updatedUser);
+    if (!validation.IsValid)
+        return Results.BadRequest(new { message = validation.Error });
+        
 
     user.Name = updatedUser.Name;
     user.Email = updatedUser.Email;
@@ -48,5 +59,28 @@ app.MapDelete("/users/{id}", (int id) =>
     users.Remove(user);
     return Results.NoContent();
 });
+
+// Validation Method
+static (bool IsValid, string Error) ValidateUser(User user)
+{
+    if (string.IsNullOrEmpty(user.Name))
+    {
+        return (false, "Name cannot be empty.");
+    }
+
+    if (string.IsNullOrEmpty(user.Email))
+    {
+        return (false, "Email cannot be empty.");
+    }
+
+    // Basic email regex
+    var emailPattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
+    if (!Regex.IsMatch(user.Email, emailPattern))
+    {
+        return (false, "Invalid email format.");
+    }
+
+    return (true, string.Empty);
+}
 
 app.Run();
