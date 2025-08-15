@@ -2,7 +2,21 @@ using UserManagement.Models;
 using System.Text.RegularExpressions;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ✅ Add Swagger support (services)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
+
+// ✅ 1. Developer tools & exception pages
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
 
 var users = new List<User>
 {
