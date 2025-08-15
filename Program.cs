@@ -33,6 +33,14 @@ app.Use(async (context, next) =>
     }
 });
 
+// ✅ 3. Logging middleware
+app.Use(async (context, next) =>
+{
+    Console.WriteLine($"➡️ {context.Request.Method} {context.Request.Path}");
+    await next(context);
+    Console.WriteLine($"⬅️ {context.Response.StatusCode}");
+});
+
 
 var users = new List<User>
 {
