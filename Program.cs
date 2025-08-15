@@ -17,6 +17,22 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+// ✅ 2. Global error handling middleware
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next(context);
+    }
+    catch (Exception ex)
+    {
+        context.Response.StatusCode = 500;
+        context.Response.ContentType = "application/json";
+        var errorResponse = new { message = "An unexpected error occurred.", detail = ex.Message };
+        await context.Response.WriteAsJsonAsync(errorResponse);
+    }
+});
+
 
 var users = new List<User>
 {
